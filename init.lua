@@ -94,7 +94,26 @@ local function punch_clock(pos, node, puncher, pt)
 		minetest.set_node(pos, node)
 	end
 	minetest.chat_send_player(pname, "it's about "..readtime.." o'clock")
+	--[[local cm = 16*(tp[a]*tp[a]+tp[b]*tp[b])/(3/16)^2
+	local x = math.floor(tp[a]*cm+0.5)
+	local y = math.floor(tp[b]*cm+0.5)
+	update_object(pos, get_object_texture(x,y))]]
 end
+
+-- it needs to be 3/16 long (tx*tx+ty*ty)/(3/16)^2
+local function get_object_texture(x,y)
+	local antile = "_alpha16.png^[combine:16x16:"
+	for _,p in pairs(vector.twoline(x-8, y-8)) do
+		antile = antile..p[1]+8 ..","..p[2]+8 .."=_black.png:"
+	end
+	return string.sub(antile, 1, -2)
+end
+
+--[[minetest.register_node("realclocks:maa", {
+	description = "Anlok",
+	tiles = {get_object_texture(2,3)},
+	groups = {snappy=3},
+})]]
 
 for _,m in pairs(materials) do
 

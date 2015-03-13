@@ -17,6 +17,15 @@ local clock_sbox = {
 local materials = {"plastic", "wood"}
 
 local function punch_clock(pos, node, puncher, pt)
+	if not (pos and node and puncher and pt
+		and puncher:get_player_control().aux1
+	) then
+		return
+	end
+	local pname = puncher:get_player_name()
+	if not minetest.check_player_privs(pname, {settime=true}) then
+		return
+	end
 	local dir = puncher:get_look_dir()
 	local dist = vector.new(dir)
 
@@ -77,13 +86,14 @@ local function punch_clock(pos, node, puncher, pt)
 	if string.sub(nodename, -1) ~= "_" then
 		nodename = nodename.."_"
 	end
-	local readtime = newtime*24
-	nodename = nodename..math.ceil(readtime%12)
+	local readtime = math.floor(newtime*24+0.5)
+	local nodenumber = readtime%12
+	nodename = nodename..(nodenumber == 0 and 12 or nodenumber)
 	if node.name ~= nodename then
 		node.name = nodename
 		minetest.set_node(pos, node)
 	end
-	minetest.chat_send_all("time "..readtime)
+	minetest.chat_send_player(pname, "it's about "..readtime.." o'clock")
 end
 
 for _,m in pairs(materials) do

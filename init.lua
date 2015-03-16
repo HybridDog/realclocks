@@ -26,6 +26,10 @@ local function punch_clock(pos, node, puncher, pt)
 	if not minetest.check_player_privs(pname, {settime=true}) then
 		return
 	end
+	-- abort if the clock is punched not on the frontside
+	if minetest.dir_to_facedir(vector.subtract(pt.under, pt.above)) ~= node.param2 then
+		return
+	end
 	local dir = puncher:get_look_dir()
 	local dist = vector.new(dir)
 

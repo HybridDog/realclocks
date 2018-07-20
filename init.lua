@@ -119,6 +119,8 @@ end
 	groups = {snappy=3},
 })]]
 
+local clock_interval = math.min(60,
+	(3600 / (tonumber(minetest.settings:get("time_speed")) or 72)) / 3)
 for _,m in pairs(materials) do
 
 	minetest.register_node("realclocks:analog_clock_"..m.."_12", {
@@ -168,7 +170,7 @@ for _,m in pairs(materials) do
 
 		minetest.register_abm({
 			nodenames = { "realclocks:analog_clock_"..m.."_"..n },
-			interval = math.min(60, (3600 / (tonumber(minetest.setting_get("time_speed")) or 72)) / 3),
+			interval = clock_interval,
 			chance = 1,
 			action = function(pos, node)
 				local hour = minetest.get_timeofday() * 24

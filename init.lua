@@ -26,7 +26,7 @@ local function punch_clock(pos, node, puncher, pt)
 	if not minetest.check_player_privs(pname, {settime=true}) then
 		return
 	end
-	-- abort if the clock is punched not on the frontside
+	-- abort if the node is punched not on the frontside
 	if minetest.dir_to_facedir(vector.subtract(pt.under, pt.above)) ~= node.param2 then
 		return
 	end
@@ -121,72 +121,71 @@ end
 
 for _,m in pairs(materials) do
 
-minetest.register_node("realclocks:analog_clock_"..m.."_12", {
-	drawtype = "mesh",
-	description = "Analog "..m.." clock",
-	mesh = "realclocks_analog_clock.obj",
-	paramtype = "light",
-	paramtype2 = "facedir",
-	sunlight_propagates = true,
-	tiles = { "realclocks_analog_clock_"..m..".png^clock_12.png" },
-	inventory_image = "realclocks_analog_clock_"..m.."_inv.png",
-	wield_image = "realclocks_analog_clock_"..m.."_inv.png",
-	collision_box = clock_cbox,
-	selection_box = clock_sbox,
-	groups = {snappy=3},
-	on_punch = punch_clock
-})
-
-minetest.register_craft({
-    output = "realclocks:analog_clock_"..m.."_12",
-    recipe = {
-		{ "", "dye:black", "" },
-		{ "", "default:stick", "" },
-		{ "", "dye:black", "" },
-    },
-})
-
-for i = 1,11 do
-
-	minetest.register_node("realclocks:analog_clock_"..m.."_"..i, {
+	minetest.register_node("realclocks:analog_clock_"..m.."_12", {
 		drawtype = "mesh",
+		description = "Analog "..m.." clock",
 		mesh = "realclocks_analog_clock.obj",
 		paramtype = "light",
 		paramtype2 = "facedir",
 		sunlight_propagates = true,
-		tiles = { "realclocks_analog_clock_"..m..".png^clock_"..i..".png" },
+		tiles = { "realclocks_analog_clock_"..m..".png^clock_12.png" },
+		inventory_image = "realclocks_analog_clock_"..m.."_inv.png",
+		wield_image = "realclocks_analog_clock_"..m.."_inv.png",
 		collision_box = clock_cbox,
 		selection_box = clock_sbox,
-		groups = {snappy=3, not_in_creative_inventory=1},
-		drop = "realclocks:analog_clock_"..m.."_12",
+		groups = {snappy=3},
 		on_punch = punch_clock
 	})
 
-end
-
-for n = 1,12 do
-
-	minetest.register_abm({
-		nodenames = { "realclocks:analog_clock_"..m.."_"..n },
-		interval = math.min(60, (3600 / (tonumber(minetest.setting_get("time_speed")))) / 3),
-		chance = 1,
-		action = function(pos, node, active_object_count, active_object_count_wider)
-			local hour = minetest.get_timeofday() * 24
-			if hour > 12 then
-				hour = hour - 12
-			end
-			hour = math.ceil(hour)
-			if hour < 1 then
-				hour = 1
-			elseif hour > 12 then
-				hour = 12
-			end
-			if node.name ~= "realclocks:analog_clock_"..m.."_"..hour then
-				local fdir = minetest.get_node(pos).param2
-				minetest.set_node(pos, {name="realclocks:analog_clock_"..m.."_"..hour, param2=fdir})
-			end
-		end
+	minetest.register_craft({
+		output = "realclocks:analog_clock_"..m.."_12",
+		recipe = {
+			{ "", "dye:black", "" },
+			{ "", "default:stick", "" },
+			{ "", "dye:black", "" },
+		},
 	})
 
-end
+	for i = 1,11 do
+
+		minetest.register_node("realclocks:analog_clock_"..m.."_"..i, {
+			drawtype = "mesh",
+			mesh = "realclocks_analog_clock.obj",
+			paramtype = "light",
+			paramtype2 = "facedir",
+			sunlight_propagates = true,
+			tiles = { "realclocks_analog_clock_"..m..".png^clock_"..i..".png" },
+			collision_box = clock_cbox,
+			selection_box = clock_sbox,
+			groups = {snappy=3, not_in_creative_inventory=1},
+			drop = "realclocks:analog_clock_"..m.."_12",
+			on_punch = punch_clock
+		})
+
+	end
+
+	for n = 1,12 do
+
+		minetest.register_abm({
+			nodenames = { "realclocks:analog_clock_"..m.."_"..n },
+			interval = math.min(60, (3600 / (tonumber(minetest.setting_get("time_speed")) or 72)) / 3),
+			chance = 1,
+			action = function(pos, node)
+				local hour = minetest.get_timeofday() * 24
+				if hour > 12 then
+					hour = hour - 12
+				end
+				hour = math.ceil(hour)
+				if hour ~= math.max(math.min(hour, 12), 1) then
+					minetest.log("error", "[realclocks] "..hour.." ∉ [1;12]")
+					hour = math.max(math.min(hour, 12), 1)
+				end
+				if node.name ~= "realclocks:analog_clock_"..m.."_"..hour then
+					node.name = "realclocks:analog_clock_"..m.."_"..hour
+					minetest.set_node(pos, node)
+				end
+			end
+		})
+
+	end
 end
